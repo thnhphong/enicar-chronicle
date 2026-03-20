@@ -103,7 +103,7 @@ export const Hero = () => {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 2, delay: 0.4, ease: "easeOut" }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50vw] h-[50vw] border-[2px] border-black/10 bg-black/[0.02] rounded-full pointer-events-none shadow-[0_0_50px_rgba(0,0,0,0.05)]"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50vw] h-[50vw] border-[2px] border-red/30  bg-red/[0.02] rounded-full pointer-events-none shadow-[0_0_50px_rgba(0,0,0,0.05)]"
       />
     </section>
   );
