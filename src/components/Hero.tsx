@@ -15,28 +15,20 @@ export const Hero = () => {
           transition={{ duration: 1.2, ease: "easeOut" }}
           className="relative inline-block"
         >
-          {/* Handwritten Tagline using Yellowtail font */}
-          <motion.span
-            initial={{ opacity: 0, rotate: -15, scale: 0.8 }}
-            animate={{ opacity: 1, rotate: -8, scale: 1 }}
-            transition={{ delay: 1, duration: 1, type: "spring" }}
-            className="absolute -top-10 -left-8 md:-top-16 md:-left-20 text-4xl md:text-6xl text-yellow font-script z-0 drop-shadow-md select-none"
-          >
-            Since 1914
-          </motion.span>
-
           {/* Subtitle */}
-          <h2 className="relative z-10 text-red tracking-[0.6em] uppercase text-xs md:text-sm font-eurostile-black hover:tracking-[1em] transition-all duration-700 mb-6 drop-shadow-sm">
-            The Legend Reborn
+          <h2 className="relative z-10 text-red tracking-[0.6em] uppercase text-xs md:text-sm font-eurostile-black hover:tracking-[1em] transition-all duration-700 mb-10 drop-shadow-sm">
+            The Stories Untold
           </h2>
 
           {/* Main Title wrapper */}
           <div className="relative z-10 flex flex-col items-center">
             {/* ENICAR - Massive size, drop shadow */}
-            <h1 className="text-7xl md:text-[10rem] lg:text-[13rem] font-eurostile-black italic leading-[0.8] text-black drop-shadow-[0_15px_25px_rgba(0,0,0,0.15)]">
+            <h1 className="text-7xl md:text-[10rem] lg:text-[13rem] font-eurostile-black italic leading-[0.7] text-black drop-shadow-[0_15px_25px_rgba(0,0,0,0.15)]">
               ENICAR
             </h1>
-
+            <h2 className="text-5xl md:text-[8rem] lg:text-[10rem] font-yellowtail italic leading-[0.8] text-black drop-shadow-[0_15px_25px_rgba(0,0,0,0.15)] -mt-6 md:-mt-10 ">
+              SHERPA
+            </h2>
             {/* CHRONICLE - Gradient text, underline effect */}
             <div className="relative inline-block mt-2 md:mt-4">
               <h1 className="text-4xl md:text-7xl lg:text-8xl font-eurostile italic leading-tight text-transparent bg-clip-text bg-gradient-to-br from-black via-gray-700 to-black drop-shadow-lg">
@@ -48,7 +40,7 @@ export const Hero = () => {
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ delay: 0.8, duration: 1.2, ease: "easeInOut" }}
-                className="absolute -bottom-2 md:-bottom-4 left-0 right-0 h-[3px] md:h-[6px] bg-red origin-left rounded-full shadow-[0_0_15px_rgba(237,32,36,0.6)]"
+                className="absolute -bottom-2 md:-bottom-0 left-0 right-0 h-[3px] md:h-[6px] bg-red origin-left rounded-full shadow-[0_0_15px_rgba(237,32,36,0.6)]"
               />
             </div>
           </div>
