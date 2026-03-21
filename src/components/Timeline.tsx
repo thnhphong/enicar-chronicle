@@ -48,9 +48,13 @@ export const Timeline = () => {
   });
 
   const getImagePath = (path: string | undefined) => {
-    if (!path) return '';
-    return `/images/Timeline/${path.replace(/\\/g, '/')}`;
-  };
+  if (!path) return '';
+  return `/images/Timeline/${path
+    .replace(/\\/g, '/')
+    .split('/')
+    .map(segment => encodeURIComponent(segment))
+    .join('/')}`;
+};
 
   const handleScrollTo = (id: number) => {
     const element = document.getElementById(`year-${id}`);
