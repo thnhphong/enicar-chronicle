@@ -51,7 +51,7 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 1 }}
-          className="max-w-2xl mx-auto text-gray-600 text-lg md:text-2xl font-eurostile font-light leading-relaxed mt-16 drop-shadow-sm"
+          className="max-w-3xl mx-auto text-gray-600 text-lg md:text-2xl font-eurostile font-light leading-relaxed mt-16 drop-shadow-sm"
         >
           A legacy of Swiss precision and exploration. Discover the storied
           history of the watches that conquered Everest and mastered the depths.
@@ -68,7 +68,7 @@ export const Hero = () => {
             href="#timeline"
             className="group flex flex-col items-center gap-4 text-black/40 hover:text-red transition-all duration-300"
           >
-            <span className="text-xs uppercase tracking-[0.3em] group-hover:tracking-[0.5em] transition-all duration-500 font-eurostile-black">
+            <span className="text-3xl uppercase tracking-[0.3em] group-hover:tracking-[0.5em] transition-all duration-500 font-eurostile-black">
               Explore the Story
             </span>
             <div className="p-3 rounded-full border border-black/10 group-hover:border-red group-hover:bg-red/5 transition-all duration-300 shadow-sm group-hover:shadow-[0_0_15px_rgba(237,32,36,0.2)]">

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Menu, X, Clock } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import logo from "/logos/Logo BIGG@4x.png";
 
 const navLinks = [
   { name: "Introduction", href: "#intro" },
@@ -14,16 +15,13 @@ export const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 glass">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-2 h-20 flex items-center justify-between">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center gap-2"
         >
-          <Clock className="text-red w-8 h-8 " />
-          <span className="text-3xl font-eurostile-black tracking-widest text-red uppercase">
-            ENICAR
-          </span>
+          <img src={logo} alt="Logo" className="h-24" />
         </motion.div>
 
         <div className="hidden md:flex items-center gap-10">

@@ -1,35 +1,38 @@
 export interface Product {
   id: string;
+  collection: 'LAND' | 'RACING' | 'DIVE' | 'SKY';
   name: string;
-  tagline: string;
-  description: string;
-  image: string;
-  features: string[];
+  models: string[];
+  timelineIds: number[];
 }
 
 export const productsData: Product[] = [
   {
-    id: 'sherpa-graph',
-    name: 'Sherpa Graph',
-    tagline: 'The Choice of Champions',
-    description: 'A legendary chronograph that powered the golden age of motor racing. Featuring the Valjoux 72 movement and a Robust waterproof case.',
-    image: '/assets/sherpa-graph.png',
-    features: ['Valjoux 72 Manual Wind', 'Tachymeter Scale', 'Waterproof Compressor Case'],
+    id: 'land',
+    collection: 'LAND',
+    name: 'The Guide',
+    models: ['Sherpa Guide'],
+    timelineIds: [2, 6, 14, 23],
   },
   {
-    id: 'jet-graph',
-    name: 'Jet Graph',
-    tagline: 'Precision Across Time Zones',
-    description: 'The ultimate GMT chronograph for the jet age. Designed for pilots and world travelers who demand accuracy across meridians.',
-    image: '/assets/jet-graph.png',
-    features: ['GMT Functionality', '24-hour Bezel', 'High-Beat Movement'],
+    id: 'racing',
+    collection: 'RACING',
+    name: 'The Graph',
+    models: ['Sherpa Graph'],
+    timelineIds: [3, 12, 16, 21],
   },
   {
-    id: 'aqua-graph',
-    name: 'Aqua Graph',
-    tagline: 'Master of the Depths',
-    description: 'A professional diver chronograph designed to withstand extreme pressure while maintaining absolute timing precision.',
-    image: '/assets/aqua-graph.png',
-    features: ['Countdown Bezel', 'Deep-Sea Rating', 'Luminous Markers'],
+    id: 'dive',
+    collection: 'DIVE',
+    name: 'The Depth',
+    models: ['Sherpa OPS', 'Sherpa Dive', 'Aquagraph'],
+    timelineIds: [1, 5, 9, 19],
+  },
+  {
+    id: 'sky',
+    collection: 'SKY',
+    name: 'The GMT',
+    models: ['Sherpa Super Jet', 'Sherpa GMT'],
+    timelineIds: [4, 11, 18],
   },
 ];
