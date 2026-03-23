@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Lightbulb, Settings, Award, ChevronRight } from "lucide-react";
+import { Lightbulb, Settings, Award, ChevronRight, Globe2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const introSections = [
   {
@@ -113,6 +114,20 @@ export const Introduction = () => {
             </motion.div>
           ))}
         </div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="mt-24 flex justify-center"
+        >
+          <Link to="/phase/1" className="group flex items-center gap-4 bg-red text-white px-10 py-5 rounded-full font-serif text-lg hover:bg-black transition-colors duration-500 shadow-xl hover:shadow-[0_10px_40px_rgba(189,33,38,0.4)]">
+            <Globe2 className="w-6 h-6 group-hover:rotate-12 transition-transform duration-500" />
+            <span>Explore Interactive Timeline</span>
+            <ChevronRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-500" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
