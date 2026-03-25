@@ -13,7 +13,7 @@ const ALL_LOCATIONS: Record<
 > = {
   1: { lat: 50.0, lng: 5.0, label: "Lengnau, Switzerland" },
   2: { lat: 32.0, lng: 80.0, label: "Himalaya" },
-  3: { lat: 52.0, lng: 1.0, label: "London: Moss" }, 
+  3: { lat: 52.0, lng: 1.0, label: "London: Moss" },
   4: { lat: 50.3755, lng: -4.1427, label: "Plymouth: Mayflower II" },
   5: { lat: 15.0, lng: -65.0, label: "Caribbean: Hans Hass" },
   6: { lat: -2.0, lng: 40.0, label: "Mt. Kenya" },
@@ -38,8 +38,6 @@ const ALL_LOCATIONS: Record<
   25: { lat: 40.0, lng: 5.0, label: "Lausanne" },
   26: { lat: 38.0, lng: 8.0, label: "Lengnau: The End" },
 };
-
-
 
 const PHASES = [
   {
@@ -69,11 +67,10 @@ export const InteractiveMap = () => {
 
   const [activeEventId, setActiveEventId] = useState<number | null>(null);
   const [showOverlayId, setShowOverlayId] = useState<number | null>(null);
-  const [hoveredTimelineId, setHoveredTimelineId] = useState<number | null>(null);
+  const [hoveredTimelineId, setHoveredTimelineId] = useState<number | null>(
+    null,
+  );
   const [isGlobeLoaded, setIsGlobeLoaded] = useState(false);
-
-
-
 
   const currentPhase = PHASES.find((p) => p.id === currentPhaseId) || PHASES[0];
 
@@ -94,7 +91,6 @@ export const InteractiveMap = () => {
       : null;
   }, [showOverlayId]);
 
-
   const getImagePath = (path: string | undefined) => {
     if (!path) return "";
     return `/images/Timeline/${path
@@ -109,7 +105,6 @@ export const InteractiveMap = () => {
     setShowOverlayId(null);
     navigate(`/phase/${id}`);
   };
-
 
   const handleNextPhase = () => {
     if (currentPhaseId < 3) handlePhaseChange(currentPhaseId + 1);
@@ -132,7 +127,10 @@ export const InteractiveMap = () => {
             setActiveEventId(id);
             setShowOverlayId(null);
           }, [])}
-          onFocusComplete={useCallback((id: number) => setShowOverlayId(id), [])}
+          onFocusComplete={useCallback(
+            (id: number) => setShowOverlayId(id),
+            [],
+          )}
           onLoaded={useCallback(() => setIsGlobeLoaded(true), [])}
         />
       </div>
@@ -161,13 +159,21 @@ export const InteractiveMap = () => {
                 />
                 <motion.div
                   animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
                   className="absolute inset-[38%] bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)]"
                 />
               </div>
-              <motion.div 
+              <motion.div
                 animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
                 className="flex flex-col items-center gap-2"
               >
                 <div className="text-white tracking-[0.4em] text-sm md:text-base font-eurostile-black uppercase">
@@ -182,15 +188,13 @@ export const InteractiveMap = () => {
         )}
       </AnimatePresence>
 
-
       {/* Top Navigation */}
       <div
         className={`absolute top-0 left-0 w-full p-6 flex justify-between items-center z-40 transition-opacity duration-500 ${showOverlayId ? "opacity-0 pointer-events-none" : "opacity-100"}`}
       >
-
         <Link
           to="/"
-          className="flex items-center gap-2 text-white/50 hover:text-white transition-colors"
+          className="flex items-center font-eurostile-black font-bold gap-2 text-red hover:text-white transition-colors"
         >
           <Home className="w-5 h-5" />
           <span className="uppercase tracking-widest text-xs font-bold">
@@ -205,7 +209,7 @@ export const InteractiveMap = () => {
               onClick={() => handlePhaseChange(p.id)}
               className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 ${p.id === currentPhaseId ? "bg-red text-white" : "bg-white/10 text-white/50 hover:bg-white/20"}`}
             >
-              Phase 0{p.id}
+              {p.years.replace(/\s+/g, "")}
             </button>
           ))}
         </div>
@@ -215,12 +219,11 @@ export const InteractiveMap = () => {
       <div
         className={`absolute top-24 left-1/2 -translate-x-1/2 text-center pointer-events-none z-30 transition-all duration-700 ${showOverlayId ? "opacity-0 -translate-y-10" : "opacity-100 translate-y-0"}`}
       >
-
         <motion.h1
           key={`title-${currentPhaseId}`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-7xl font-serif font-black italic tracking-tighter"
+          className="text-5xl md:text-7xl font-eurostile-black font-bold italic tracking-tighter"
         >
           {currentPhase.title}
         </motion.h1>
@@ -251,7 +254,7 @@ export const InteractiveMap = () => {
                       exit={{ opacity: 0, y: 10, scale: 0.9 }}
                       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-10 w-64 bg-black/95 backdrop-blur-xl rounded-lg p-5 z-[100] pointer-events-none shadow-[0_20px_50px_rgba(0,0,0,1)] text-center ring-1 ring-white/10"
                     >
-                      <div className="text-sm md:text-base font-serif font-bold leading-tight text-white tracking-wide">
+                      <div className="text-sm md:text-base font-eurostile-black  leading-tight text-white tracking-wide">
                         {event.title}
                       </div>
                       {/* Tooltip triangle */}
@@ -283,14 +286,14 @@ export const InteractiveMap = () => {
             <button
               onClick={handlePrevPhase}
               disabled={currentPhaseId === 1}
-              className="flex items-center gap-2 text-white/50 hover:text-white disabled:opacity-20 transition-colors"
+              className="flex font-eurostile-black font-bold items-center gap-2 text-red hover:text-white disabled:opacity-20 transition-colors"
             >
               <ChevronLeft className="w-5 h-5" /> Prev Phase
             </button>
             <button
               onClick={handleNextPhase}
               disabled={currentPhaseId === 3}
-              className="flex items-center gap-2 text-white/50 hover:text-white disabled:opacity-20 transition-colors"
+              className="font-eurostile-black font-bold flex  items-center gap-2 text-red hover:text-white disabled:opacity-20 transition-colors"
             >
               Next Phase <ChevronRight className="w-5 h-5" />
             </button>
@@ -366,7 +369,6 @@ export const InteractiveMap = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 };
