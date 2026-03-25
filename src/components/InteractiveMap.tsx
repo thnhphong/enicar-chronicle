@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -65,13 +65,6 @@ export const InteractiveMap = () => {
   const navigate = useNavigate();
   const currentPhaseId = parseInt(phaseId || "1", 10);
 
-  const [activeEventId, setActiveEventId] = useState<number | null>(null);
-  const [showOverlayId, setShowOverlayId] = useState<number | null>(null);
-  const [hoveredTimelineId, setHoveredTimelineId] = useState<number | null>(
-    null,
-  );
-  const [isGlobeLoaded, setIsGlobeLoaded] = useState(false);
-
   const currentPhase = PHASES.find((p) => p.id === currentPhaseId) || PHASES[0];
 
   const phaseEventsData = useMemo(() => {
@@ -84,6 +77,37 @@ export const InteractiveMap = () => {
       return { id: e.id, lat: loc.lat, lng: loc.lng, label: loc.label };
     });
   }, [phaseEventsData]);
+
+  const [activeEventId, setActiveEventId] = useState<number | null>(null);
+  const [showOverlayId, setShowOverlayId] = useState<number | null>(null);
+  const [tappedTimelineId, setTappedTimelineId] = useState<number | null>(null);
+  const [isGlobeLoaded, setIsGlobeLoaded] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const checkScroll = useCallback(() => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(checkScroll, 500); // Check after render/phase change
+    return () => clearTimeout(timer);
+  }, [phaseEventsData, checkScroll]);
+
+  const scrollTimeline = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = window.innerWidth * 0.4;
+      scrollContainerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   const activeOverlayEvent = useMemo(() => {
     return showOverlayId
@@ -103,20 +127,25 @@ export const InteractiveMap = () => {
   const handlePhaseChange = (id: number) => {
     setActiveEventId(null);
     setShowOverlayId(null);
+    setTappedTimelineId(null);
     navigate(`/phase/${id}`);
   };
 
-  const handleNextPhase = () => {
-    if (currentPhaseId < 3) handlePhaseChange(currentPhaseId + 1);
-  };
 
-  const handlePrevPhase = () => {
-    if (currentPhaseId > 1) handlePhaseChange(currentPhaseId - 1);
+  const handleTimelineDotClick = (eventId: number) => {
+    // On tap, toggle label visibility; on second tap, navigate
+    if (tappedTimelineId === eventId) {
+      setActiveEventId(eventId);
+      setShowOverlayId(null);
+      setTappedTimelineId(null);
+    } else {
+      setTappedTimelineId(eventId);
+    }
   };
 
   return (
-    <div className="relative w-screen h-screen bg-[#0a0a0a] text-white overflow-hidden font-sans">
-      {/* 3D Globe Background Layer */}
+    <div className="relative w-full min-h-[100dvh] bg-zinc-950 text-white overflow-hidden font-sans">
+      {/* 3D Globe Background Layer — full viewport, globe is the hero */}
       <div
         className={`absolute inset-0 transition-all duration-1000 ${showOverlayId ? "blur-xl opacity-30 scale-105" : "blur-0 opacity-100 scale-100"}`}
       >
@@ -135,6 +164,15 @@ export const InteractiveMap = () => {
         />
       </div>
 
+      {/* Top gradient vignette */}
+      <div
+        className={`absolute inset-x-0 top-0 h-[30%] sm:h-[35%] lg:h-[40%] bg-gradient-to-b from-zinc-950 via-zinc-950/70 to-transparent pointer-events-none z-[5] transition-opacity duration-1000 ${showOverlayId ? "opacity-0" : "opacity-100"}`}
+      />
+      {/* Bottom gradient vignette for timeline */}
+      <div
+        className={`absolute inset-x-0 bottom-0 h-[25%] sm:h-[28%] lg:h-[30%] bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent pointer-events-none z-[5] transition-opacity duration-1000 ${showOverlayId ? "opacity-0" : "opacity-100"}`}
+      />
+
       {/* Cinematic Loading Overlay */}
       <AnimatePresence>
         {!isGlobeLoaded && (
@@ -145,8 +183,8 @@ export const InteractiveMap = () => {
             transition={{ duration: 1.2, ease: "easeInOut" }}
             className="absolute inset-0 z-[200] flex flex-col items-center justify-center bg-zinc-950 backdrop-blur-xl"
           >
-            <div className="flex flex-col items-center gap-10">
-              <div className="relative w-24 h-24">
+            <div className="flex flex-col items-center gap-8 md:gap-10">
+              <div className="relative w-20 h-20 md:w-24 md:h-24">
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -176,10 +214,10 @@ export const InteractiveMap = () => {
                 }}
                 className="flex flex-col items-center gap-2"
               >
-                <div className="text-white tracking-[0.4em] text-sm md:text-base font-eurostile-black uppercase">
+                <div className="text-white tracking-[0.18em] md:tracking-[0.4em] text-xs md:text-base font-eurostile-black uppercase">
                   Initializing the Chronicle
                 </div>
-                <div className="text-white/40 tracking-[0.2em] text-[10px] md:text-xs">
+                <div className="text-white/40 tracking-[0.12em] md:tracking-[0.2em] text-[10px] md:text-xs">
                   Loading Global Interface
                 </div>
               </motion.div>
@@ -190,24 +228,24 @@ export const InteractiveMap = () => {
 
       {/* Top Navigation */}
       <div
-        className={`absolute top-0 left-0 w-full p-6 flex justify-between items-center z-40 transition-opacity duration-500 ${showOverlayId ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        className={`absolute top-0 left-0 w-full max-w-full px-3 sm:px-6 py-3 sm:py-6 flex items-center gap-2 sm:gap-4 z-40 transition-opacity duration-500 ${showOverlayId ? "opacity-0 pointer-events-none" : "opacity-100"}`}
       >
         <Link
           to="/"
-          className="flex items-center font-eurostile-black font-bold gap-2 text-red hover:text-white transition-colors"
+          className="flex items-center font-eurostile-black font-bold gap-1.5 sm:gap-2 text-red hover:text-white transition-colors min-h-11 shrink-0"
         >
-          <Home className="w-5 h-5" />
-          <span className="uppercase tracking-widest text-xs font-bold">
+          <Home className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="uppercase tracking-[0.12em] md:tracking-widest text-[10px] sm:text-xs font-bold hidden sm:inline">
             Home
           </span>
         </Link>
 
-        <div className="flex gap-4">
+        <div className="flex gap-1.5 sm:gap-3 flex-1 min-w-0 overflow-x-auto no-scrollbar justify-end">
           {PHASES.map((p) => (
             <button
               key={p.id}
               onClick={() => handlePhaseChange(p.id)}
-              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 ${p.id === currentPhaseId ? "bg-red text-white" : "bg-white/10 text-white/50 hover:bg-white/20"}`}
+              className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 min-h-11 shrink-0 ${p.id === currentPhaseId ? "bg-red text-white" : "bg-white/10 text-white/50 hover:bg-white/20"}`}
             >
               {p.years.replace(/\s+/g, "")}
             </button>
@@ -217,13 +255,13 @@ export const InteractiveMap = () => {
 
       {/* Phase Titles */}
       <div
-        className={`absolute top-24 left-1/2 -translate-x-1/2 text-center pointer-events-none z-30 transition-all duration-700 ${showOverlayId ? "opacity-0 -translate-y-10" : "opacity-100 translate-y-0"}`}
+        className={`absolute top-16 sm:top-24 left-1/2 -translate-x-1/2 text-center pointer-events-none z-30 w-full px-4 transition-all duration-700 ${showOverlayId ? "opacity-0 -translate-y-10" : "opacity-100 translate-y-0"}`}
       >
         <motion.h1
           key={`title-${currentPhaseId}`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-7xl font-script  italic tracking-wide"
+          className="text-[clamp(2rem,7vw,5rem)] font-script italic tracking-wide drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]"
         >
           {currentPhase.title}
         </motion.h1>
@@ -232,74 +270,101 @@ export const InteractiveMap = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-red font-eurostile-black tracking-[0.5em] text-sm mt-4 uppercase"
+          className="text-red font-eurostile-black tracking-[0.18em] md:tracking-[0.5em] text-xs sm:text-sm mt-3 md:mt-4 uppercase"
         >
           {currentPhase.years}
         </motion.p>
       </div>
 
-      {/* Bottom Timeline Bar */}
-      <div
-        className={`absolute bottom-0 left-0 w-full z-50 transition-transform duration-700 ${showOverlayId ? "translate-y-full" : "translate-y-0"}`}
-      >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pt-32 pb-4 relative overflow-y-visible">
-            {phaseEventsData.map((event) => (
-              <div key={event.id} className="relative group shrink-0">
-                <AnimatePresence>
-                  {hoveredTimelineId === event.id && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-10 w-64 bg-black/95 backdrop-blur-xl rounded-lg p-5 z-[100] pointer-events-none shadow-[0_20px_50px_rgba(0,0,0,1)] text-center ring-1 ring-white/10"
+        {/* Bottom Timeline Bar */}
+        <div
+          className={`absolute bottom-0 left-0 w-full z-50 transition-transform duration-700 ${showOverlayId ? "translate-y-full" : "translate-y-0"}`}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 relative">
+            <div className="relative group/timeline">
+              <AnimatePresence>
+                {canScrollLeft && (
+                  <motion.button
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    onClick={() => scrollTimeline("left")}
+                    className="absolute left-[-1.5rem] sm:left-[-3rem] top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center text-red bg-zinc-950/40 backdrop-blur-md rounded-full border border-red/20 shadow-[0_0_15px_rgba(189,33,38,0.3)] hover:bg-red hover:text-white transition-all cursor-pointer"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {canScrollRight && (
+                  <motion.button
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    onClick={() => scrollTimeline("right")}
+                    className="absolute right-[-1.5rem] sm:right-[-3rem] top-1/2 -translate-y-1/2 z-50 w-10 h-10 flex items-center justify-center text-red bg-zinc-950/40 backdrop-blur-md rounded-full border border-red/20 shadow-[0_0_15px_rgba(189,33,38,0.3)] hover:bg-red hover:text-white transition-all cursor-pointer"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              <div 
+                ref={scrollContainerRef}
+                onScroll={checkScroll}
+                className="flex items-center gap-4 sm:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pt-24 sm:pt-32 pb-24 sm:pb-32 relative overflow-y-visible px-[2vw]"
+              >
+                {phaseEventsData.map((event, index) => (
+                  <div key={event.id} className="relative group shrink-0">
+                    {/* Tooltip — visible on hover (desktop) or tap (mobile) */}
+                    <AnimatePresence>
+                      {(tappedTimelineId === event.id) && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                          className={`absolute bottom-full mb-14 sm:mb-10 w-48 sm:w-64 bg-zinc-950/95 backdrop-blur-xl rounded-lg p-4 sm:p-5 z-[100] pointer-events-none shadow-[0_20px_50px_rgba(0,0,0,1)] text-center ring-1 ring-white/10 ${
+                            index === 0 
+                              ? "left-0 translate-x-0" 
+                              : index === phaseEventsData.length - 1 
+                                ? "right-0 translate-x-0" 
+                                : "left-1/2 -translate-x-1/2"
+                          }`}
+                        >
+                          <div className="text-xs sm:text-sm font-eurostile-black leading-tight text-white tracking-wide">
+                            {event.title}
+                          </div>
+                          {/* Tooltip triangle — adjusted based on tooltip alignment */}
+                          <div className={`absolute top-full w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-black/95 ${
+                            index === 0 
+                              ? "left-4 translate-x-0" 
+                              : index === phaseEventsData.length - 1 
+                                ? "right-4 translate-x-0" 
+                                : "left-1/2 -translate-x-1/2"
+                          }`} />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <button
+                      onClick={() => handleTimelineDotClick(event.id)}
+                      onMouseEnter={() => setTappedTimelineId(event.id)}
+                      onMouseLeave={() => setTappedTimelineId(null)}
+                      className="flex flex-col items-center gap-3 sm:gap-4 px-2 sm:px-4 outline-none transition-transform duration-300 active:scale-95 min-h-11 min-w-11 rounded-md"
                     >
-                      <div className="text-sm md:text-base font-eurostile-black leading-tight text-white tracking-wide">
-                        {event.title}
+                      <div className="text-white/40 group-hover:text-red transition-colors text-xs sm:text-sm font-bold tracking-[0.05em] sm:tracking-[0.1em]">
+                        {event.year}
                       </div>
-                      {/* Tooltip triangle */}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] border-t-black/95" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <button
-                  onClick={() => {
-                    setActiveEventId(event.id);
-                    setShowOverlayId(null);
-                  }}
-                  onMouseEnter={() => setHoveredTimelineId(event.id)}
-                  onMouseLeave={() => setHoveredTimelineId(null)}
-                  className="flex flex-col items-center gap-4 px-4 outline-none transition-transform duration-300 active:scale-95"
-                >
-                  <div className="text-white/40 group-hover:text-red transition-colors text-sm font-bold tracking-[0.1em]">
-                    {event.year}
+                      <div className="w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-white/20 group-hover:bg-red group-hover:scale-125 transition-all shadow-[0_0_15px_rgba(255,189,33,0)] group-hover:shadow-[0_0_20px_rgba(189,33,38,0.7)]" />
+                    </button>
                   </div>
-                  <div className="w-5 h-5 rounded-full bg-white/20 group-hover:bg-red group-hover:scale-125 transition-all shadow-[0_0_15px_rgba(255,189,33,0)] group-hover:shadow-[0_0_20px_rgba(189,33,38,0.7)]" />
-                </button>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* Phase Navigation Arrows */}
-          <div className="flex justify-between items-center mt-4">
-            <button
-              onClick={handlePrevPhase}
-              disabled={currentPhaseId === 1}
-              className="flex font-eurostile-black font-bold items-center gap-2 text-red hover:text-white disabled:opacity-20 transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" /> Prev Phase
-            </button>
-            <button
-              onClick={handleNextPhase}
-              disabled={currentPhaseId === 3}
-              className="font-eurostile-black font-bold flex  items-center gap-2 text-red hover:text-white disabled:opacity-20 transition-colors"
-            >
-              Next Phase <ChevronRight className="w-5 h-5" />
-            </button>
           </div>
         </div>
-      </div>
 
       {/* Cinematic Event Takeover Overlay */}
       <AnimatePresence>
@@ -309,37 +374,37 @@ export const InteractiveMap = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="absolute inset-0 z-50 flex items-center justify-center bg-black/40"
+            className="absolute inset-0 z-50 flex items-start sm:items-center justify-center bg-zinc-950/40 overflow-y-auto"
           >
             <button
               onClick={() => {
                 setActiveEventId(null);
                 setShowOverlayId(null);
               }}
-              className="absolute top-8 right-8 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:bg-white hover:text-black transition-all z-50"
+              className="fixed top-4 right-4 sm:top-8 sm:right-8 w-12 h-12 min-h-11 min-w-11 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:bg-white hover:text-black transition-all z-[60] focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2 focus:ring-offset-zinc-950"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="max-w-7xl mx-auto w-full px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center h-full max-h-[80vh] overflow-y-auto no-scrollbar">
+            <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center py-16 sm:py-8">
               {/* Text Content */}
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
-                className="space-y-8"
+                className="space-y-5 sm:space-y-8"
               >
-                <div className="inline-block px-4 py-1.5 border border-red/50 rounded-full text-red font-eurostile-black tracking-widest text-sm uppercase">
+                <div className="inline-block px-3 sm:px-4 py-1.5 border border-red/50 rounded-full text-red font-eurostile-black tracking-[0.12em] sm:tracking-widest text-xs sm:text-sm uppercase">
                   {activeOverlayEvent.year}
                 </div>
-                <h2 className="text-5xl md:text-7xl font-eurostile-black font-bold leading-tight">
+                <h2 className="text-[clamp(1.75rem,6vw,4.5rem)] font-eurostile-black font-bold leading-tight">
                   {activeOverlayEvent.title}
                 </h2>
-                <p className="text-xl md:text-2xl font-light text-white/70 leading-relaxed">
+                <p className="text-base md:text-lg lg:text-2xl font-light text-white/70 leading-relaxed max-w-[65ch]">
                   {activeOverlayEvent.description}
                 </p>
                 {activeOverlayEvent.month && (
-                  <p className="text-sm text-red   tracking-widest uppercase font-bold">
+                  <p className="text-xs sm:text-sm text-red tracking-[0.12em] sm:tracking-widest uppercase font-bold">
                     Date: {activeOverlayEvent.month}
                   </p>
                 )}
@@ -350,12 +415,12 @@ export const InteractiveMap = () => {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
               >
                 {activeOverlayEvent.images?.map((img, idx) => (
                   <div
                     key={idx}
-                    className={`rounded-2xl overflow-hidden shadow-2xl ${idx === 0 && activeOverlayEvent.images!.length % 2 !== 0 ? "sm:col-span-2" : ""}`}
+                    className={`rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl ${idx === 0 && activeOverlayEvent.images!.length % 2 !== 0 ? "sm:col-span-2" : ""}`}
                   >
                     <img
                       src={getImagePath(img)}

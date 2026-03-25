@@ -51,7 +51,7 @@ const ParticleGlobe = ({ onLoaded }: { onLoaded?: () => void }) => {
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
       const pts: number[] = [];
-      const rows = 120; // Total dot rows
+      const rows = 180; // Total dot rows
 
       for (let lat = -90; lat <= 90; lat += 180 / rows) {
         const radiusAtLat = Math.cos(lat * (Math.PI / 180));
@@ -197,7 +197,7 @@ const MarkerItem = ({
         className="pointer-events-none select-none"
       >
         <div
-          className={`transition-all duration-300 ${isActive || isHovered ? "opacity-100 scale-100" : "opacity-0 scale-90"} bg-black/90 backdrop-blur-md text-white text-[10px] px-3 py-1.5 rounded-lg font-sans font-semibold shadow-xl border border-white/20 -translate-x-1/2 -translate-y-[calc(100%+12px)] whitespace-nowrap uppercase tracking-widest`}
+          className={`transition-all duration-300 ${isActive || isHovered ? "opacity-100 scale-100" : "opacity-0 scale-90"} bg-zinc-950/90 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-lg font-sans font-semibold shadow-xl border border-white/20 -translate-x-1/2 -translate-y-[calc(100%+12px)] whitespace-nowrap uppercase tracking-wider`}
         >
           {event.label}
         </div>
@@ -231,6 +231,37 @@ const Markers = ({
 };
 
 // Main Component
+
+const useResponsiveFov = () => {
+  const [fov, setFov] = useState(() => (typeof window !== "undefined" && window.innerWidth < 640 ? 62 : 45));
+
+  useEffect(() => {
+    const updateFov = () => {
+      const w = window.innerWidth;
+      if (w < 480) setFov(65);
+      else if (w < 640) setFov(58);
+      else setFov(45);
+    };
+    updateFov();
+    window.addEventListener("resize", updateFov);
+    return () => window.removeEventListener("resize", updateFov);
+  }, []);
+
+  return fov;
+};
+
+// Component to sync camera FOV with responsive state
+const CameraFovSync = ({ fov }: { fov: number }) => {
+  useFrame(({ camera }) => {
+    const cam = camera as THREE.PerspectiveCamera;
+    if (Math.abs(cam.fov - fov) > 0.5) {
+      cam.fov = fov;
+      cam.updateProjectionMatrix();
+    }
+  });
+  return null;
+};
+
 export const TimelineGlobe = ({
   events,
   activeEventId,
@@ -239,6 +270,7 @@ export const TimelineGlobe = ({
   onLoaded,
 }: TimelineGlobeProps) => {
   const controlsRef = useRef<OrbitControlsImpl>(null);
+  const fov = useResponsiveFov();
 
   useEffect(() => {
     if (controlsRef.current) {
@@ -285,8 +317,9 @@ export const TimelineGlobe = ({
 
   return (
     <div className="w-full h-full pointer-events-auto bg-transparent cursor-pointer">
-      <Canvas camera={{ position: [0, 0, GLOBE_RADIUS * 4], fov: 45 }}>
+      <Canvas camera={{ position: [0, 0, GLOBE_RADIUS * 4], fov }}>
         <ambientLight intensity={0.5} />
+        <CameraFovSync fov={fov} />
 
         <group>
           <ParticleGlobe onLoaded={onLoaded} />
