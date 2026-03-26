@@ -4,8 +4,14 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "/logos/Logo BIGG@4x.png";
 
-const navLinks = [
-  { name: "Home", href: "/" },
+type NavLink = {
+  name: string;
+  href: string;
+  onClick?: () => void;
+};
+
+const navLinks: NavLink[] = [
+  { name: "Home", href: "/", onClick: () => window.scrollTo(0, 0) },
   { name: "Introduction", href: "/#intro" },
   { name: "Timeline", href: "/phase/1" },
   { name: "Products", href: "/products#products" },
@@ -36,6 +42,7 @@ export const Navbar = () => {
             >
               <Link
                 to={link.href}
+                onClick={link.onClick}
                 className="text-2xl font-eurostile tracking-wide hover:text-red transition-colors duration-300"
               >
                 {link.name}
@@ -62,7 +69,10 @@ export const Navbar = () => {
             <Link
               key={link.name}
               to={link.href}
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                link.onClick?.();
+              }}
               className="block text-lg hover:text-cyan transition-colors"
             >
               {link.name}
